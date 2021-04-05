@@ -66,7 +66,7 @@ typedef
    bz_stream;
 
 
-#ifndef BZ_IMPORT
+#if !defined( BZ_IMPORT ) && !defined( BZ_EXPORT )
 #define BZ_EXPORT
 #endif
 
@@ -75,12 +75,25 @@ typedef
 #include <stdio.h>
 #endif
 
-#ifdef _WIN32
+#if defined( WINDOWS ) || defined( WIN32 )
+
 #   include <windows.h>
 #   ifdef small
       /* windows.h define small to char */
 #      undef small
 #   endif
+
+#if defined( BZ_DLL )
+#    if defined(WIN32) && ( !defined( __BORLANDC__ ) || ( __BORLANDC__ >= 0x500 ) )
+#      ifdef BZ_EXPORT
+#        define BZ_EXTERN extern __declspec(dllexport)
+#      else
+#        define BZ_EXTERN extern __declspec(dllimport)
+#      endif
+#    define BZ_API(func) func
+#    endif
+
+#else
 #   ifdef BZ_EXPORT
 #   define BZ_API(func) WINAPI func
 #   define BZ_EXTERN extern
@@ -89,10 +102,13 @@ typedef
 #   define BZ_API(func) (WINAPI * func)
 #   define BZ_EXTERN
 #   endif
+
+#endif /* defined( BZ_DLL ) */
+
 #else
 #   define BZ_API(func) func
 #   define BZ_EXTERN extern
-#endif
+#endif /* defined( WINDOWS ) || defined( WIN32 ) */
 
 
 /*-- Core (low-level) library functions --*/
